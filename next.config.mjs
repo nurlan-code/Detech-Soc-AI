@@ -1,8 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -28,13 +23,13 @@ const nextConfig = {
     "space-separated-tokens", "comma-separated-tokens",
     "hastscript", "web-namespaces",
   ],
-  outputFileTracingRoot: path.join(__dirname, "../"),
   images: {
     remotePatterns: [],
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
     NEXT_PUBLIC_APP_NAME: "Detech SOC AI",
+    NEXT_PUBLIC_MOCK: process.env.NEXT_PUBLIC_MOCK || "true",
   },
 };
 

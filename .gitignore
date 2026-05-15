@@ -18,6 +18,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# TypeScript cache
+tsconfig.tsbuildinfo
+
 # debug
 npm-debug.log*
 yarn-debug.log*

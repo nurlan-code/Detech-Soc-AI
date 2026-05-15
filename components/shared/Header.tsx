@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -18,6 +19,7 @@ interface Props {
 
 export function Header({ title }: Props) {
   const { user } = useAuthStore();
+  const { toggleMobileSidebar } = useUIStore();
   const [hasNotif, setHasNotif] = useState(true);
 
   const handleNotif = () => {
@@ -30,10 +32,20 @@ export function Header({ title }: Props) {
   };
 
   return (
-    <header className="h-14 bg-soc-surface border-b border-soc-border flex items-center justify-between px-5 flex-shrink-0">
+    <header className="h-14 bg-soc-surface border-b border-soc-border flex items-center justify-between px-4 flex-shrink-0">
       {/* Left */}
-      <div className="flex items-center gap-4">
-        {title && <h1 className="text-base font-semibold text-white">{title}</h1>}
+      <div className="flex items-center gap-3">
+        {/* Mobile hamburger */}
+        <button
+          onClick={toggleMobileSidebar}
+          className="lg:hidden w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {title && <h1 className="text-sm font-semibold text-white truncate max-w-[140px] sm:max-w-none">{title}</h1>}
+
+        {/* Search — hidden on small screens */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600" />
           <input
@@ -42,7 +54,7 @@ export function Header({ title }: Props) {
             className="pl-8 pr-4 py-1.5 bg-soc-dark border border-soc-border rounded-lg text-xs
                        text-gray-400 placeholder-gray-700
                        focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
-                       transition-colors w-64"
+                       transition-colors w-56 lg:w-64"
           />
         </div>
       </div>
@@ -62,7 +74,7 @@ export function Header({ title }: Props) {
 
         {/* User chip */}
         <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-soc-dark border border-soc-border rounded-lg">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-[11px] font-bold text-white">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
             {user?.username?.[0]?.toUpperCase() ?? "U"}
           </div>
           <div className="hidden sm:block">

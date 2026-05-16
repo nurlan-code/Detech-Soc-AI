@@ -10,7 +10,7 @@ import { Header } from "@/components/shared/Header";
 import { cn, statusBadgeClass, formatRelativeTime, truncate } from "@/lib/utils";
 import {
   Plus, RefreshCw, Search, Brain, Zap, Filter,
-  ChevronRight, X, AlertTriangle, Shield,
+  ChevronRight, X, AlertTriangle, Shield, Link2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -310,6 +310,30 @@ export default function AlertsPage() {
           </div>
         </motion.div>
 
+        {/* Source quick-filter chips */}
+        <motion.div
+          className="flex flex-wrap gap-1.5 items-center"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }}
+        >
+          <span className="text-[10px] text-gray-600 mr-1">Source:</span>
+          {["all", ...SOURCES].map((src) => {
+            const active = src === "all" ? !sevFilter && !statusFilter && !search : false;
+            return (
+              <button
+                key={src}
+                className={cn(
+                  "text-[10px] font-mono uppercase px-2.5 py-1 rounded-full border transition-all",
+                  src === "all"
+                    ? "text-gray-400 border-soc-border bg-soc-card hover:border-gray-500"
+                    : "text-gray-500 border-soc-border bg-soc-dark hover:text-gray-300 hover:border-gray-600"
+                )}
+              >
+                {src === "all" ? "All" : src}
+              </button>
+            );
+          })}
+        </motion.div>
+
         {/* Table */}
         <motion.div
           className="soc-card overflow-hidden"
@@ -318,15 +342,15 @@ export default function AlertsPage() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-soc-border">
-                {["Severity","Title","Status","Source","Risk","AI","Time",""].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-[10px] text-gray-600 font-semibold uppercase tracking-wider">{h}</th>
+                {["Sev","Alert / Techniques / Tags","Status","Source","Risk","AI","IOCs","Time",""].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-[10px] text-gray-600 font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-xs text-gray-600">
+                  <td colSpan={9} className="px-4 py-12 text-center text-xs text-gray-600">
                     <div className="flex items-center justify-center gap-2">
                       <motion.div
                         className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"
@@ -339,7 +363,7 @@ export default function AlertsPage() {
               )}
               {!isLoading && alerts.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={9} className="px-4 py-12 text-center">
                     <AlertTriangle className="w-8 h-8 text-gray-700 mx-auto mb-2" />
                     <p className="text-xs text-gray-600">No alerts found matching your filters</p>
                   </td>
@@ -371,17 +395,26 @@ export default function AlertsPage() {
 
                     {/* Title */}
                     <td className="px-4 py-3 max-w-xs">
-                      <p className="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">
-                        {truncate(alert.title, 52)}
-                      </p>
-                      {alert.mitre_tactics?.length > 0 && (
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          {alert.mitre_tactics.slice(0, 2).map((t) => (
-                            <span key={t} className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/15 px-1.5 py-0.5 rounded">{t}</span>
-                          ))}
-                          {alert.mitre_tactics.length > 2 && <span className="text-[10px] text-gray-600">+{alert.mitre_tactics.length - 2}</span>}
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-gray-200 text-sm font-medium group-hover:text-white transition-colors leading-snug">
+                            {truncate(alert.title, 50)}
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1.5 items-center">
+                            {/* MITRE technique IDs */}
+                            {alert.mitre_techniques?.slice(0, 2).map((t) => (
+                              <span key={t.id} className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/15 px-1.5 py-0.5 rounded font-mono">{t.id}</span>
+                            ))}
+                            {(alert.mitre_techniques?.length ?? 0) > 2 && (
+                              <span className="text-[10px] text-gray-600">+{alert.mitre_techniques.length - 2} more</span>
+                            )}
+                            {/* Tags */}
+                            {alert.tags?.slice(0, 2).map((tag) => (
+                              <span key={tag} className="text-[10px] text-gray-500 bg-white/5 border border-white/8 px-1.5 py-0.5 rounded">{tag}</span>
+                            ))}
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </td>
 
                     {/* Status */}
@@ -416,6 +449,18 @@ export default function AlertsPage() {
                       {alert.is_ai_triaged
                         ? <div className="flex items-center gap-1 text-blue-400"><Brain className="w-3.5 h-3.5" /><span className="text-[10px]">Done</span></div>
                         : <span className="text-gray-700 text-xs">—</span>}
+                    </td>
+
+                    {/* IOC count */}
+                    <td className="px-4 py-3">
+                      {(alert.iocs?.length ?? 0) > 0 ? (
+                        <div className="flex items-center gap-1 text-cyan-400">
+                          <Link2 className="w-3 h-3" />
+                          <span className="text-xs font-mono font-semibold">{alert.iocs.length}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-700 text-xs">—</span>
+                      )}
                     </td>
 
                     {/* Time */}

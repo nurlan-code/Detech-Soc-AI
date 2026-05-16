@@ -216,12 +216,13 @@ export default function LoginPage() {
 
       {/* ── Right: login form panel ── */}
       <div
-        className="flex-1 flex items-center justify-center p-6 relative h-full overflow-hidden"
+        className="flex-1 relative overflow-y-auto"
         style={{ background: "linear-gradient(180deg, #080c14 0%, #050810 100%)" }}
       >
         {/* Subtle glow */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(59,130,246,0.04) 0%, transparent 100%)" }} />
 
+        <div className="min-h-full flex items-center justify-center p-6">
         <div className="w-full max-w-[380px] relative z-10">
 
           {/* Mobile logo */}
@@ -391,6 +392,7 @@ export default function LoginPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
         </div>
       </div>
     </div>

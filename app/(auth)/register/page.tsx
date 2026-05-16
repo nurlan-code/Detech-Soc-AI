@@ -91,11 +91,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-soc-dark flex overflow-hidden">
+    <div className="h-screen bg-soc-dark flex overflow-hidden">
 
       {/* ── Left branding panel ── */}
       <div
-        className="hidden lg:flex lg:w-[42%] flex-col justify-between p-14 relative overflow-hidden flex-shrink-0"
+        className="hidden lg:flex lg:w-[42%] flex-col justify-between p-8 xl:p-12 relative overflow-y-auto flex-shrink-0"
         style={{ background: "linear-gradient(145deg, #060a12 0%, #0d1117 55%, #071028 100%)" }}
       >
         <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-30 pointer-events-none" />
@@ -177,11 +177,12 @@ export default function RegisterPage() {
 
       {/* ── Right: register form ── */}
       <div
-        className="flex-1 flex items-center justify-center p-6 relative overflow-y-auto"
+        className="flex-1 relative overflow-y-auto"
         style={{ background: "linear-gradient(180deg, #080c14 0%, #050810 100%)" }}
       >
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(59,130,246,0.04) 0%, transparent 100%)" }} />
 
+        <div className="min-h-full flex items-center justify-center p-6">
         <div className="w-full max-w-[400px] relative z-10 py-6">
 
           {/* Mobile logo */}
@@ -355,6 +356,7 @@ export default function RegisterPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
         </div>
       </div>
     </div>

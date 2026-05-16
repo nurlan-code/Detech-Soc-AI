@@ -14,7 +14,8 @@ import {
   CheckCircle, XCircle, RefreshCw, Flame, Users, Tag,
   ChevronRight, Activity,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import toast from "react-hot-toast";
 
 export default function IncidentDetailPage() {

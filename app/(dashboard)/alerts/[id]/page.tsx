@@ -14,7 +14,8 @@ import {
   Copy, Check, Tag, Clock, Server, Hash, Globe, Mail,
   CheckCircle, XCircle, RefreshCw,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import toast from "react-hot-toast";
 
 const IOC_ICON: Record<string, React.ElementType> = {

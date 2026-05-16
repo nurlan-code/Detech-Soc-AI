@@ -11,7 +11,8 @@ import {
   ArrowLeft, Brain, AlertTriangle, Link2, ShieldAlert, CheckCircle,
   Clock, Mail, Shield, XCircle, Copy, Check, ExternalLink,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import toast from "react-hot-toast";
 import { useState } from "react";
 

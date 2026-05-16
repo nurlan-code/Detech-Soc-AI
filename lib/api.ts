@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import {
   MOCK_USER, MOCK_ALERTS, MOCK_INCIDENTS, MOCK_PHISHING, MOCK_REPORTS,
   MOCK_STATS, MOCK_TREND, MOCK_SEVERITY_DIST, MOCK_ACTIVITY, MOCK_AUDIT_LOGS,
+  MOCK_TOP_MITRE, MOCK_TOP_ASSETS, MOCK_TOP_USERS, MOCK_EXTENDED_STATS,
   generateMockAIResponse,
 } from "./mockData";
 
@@ -93,9 +94,12 @@ export const dashboardApi = USE_MOCK
       getStats: () => mockOk(MOCK_STATS),
       getAlertTrend: (_days = 30) => mockOk(MOCK_TREND),
       getSeverityDistribution: () => mockOk(MOCK_SEVERITY_DIST),
-      getMitreHeatmap: () => mockOk({}),
-      getTopIocs: (_limit = 10) => mockOk([]),
+      getMitreHeatmap: () => mockOk(MOCK_TOP_MITRE),
+      getTopIocs: (_limit = 10) => mockOk(MOCK_ALERTS.flatMap((a) => a.iocs).slice(0, _limit)),
       getRecentActivity: (_limit = 8) => mockOk(MOCK_ACTIVITY),
+      getTopAssets: (_limit = 5) => mockOk(MOCK_TOP_ASSETS),
+      getTopUsers: (_limit = 5) => mockOk(MOCK_TOP_USERS),
+      getExtendedStats: () => mockOk(MOCK_EXTENDED_STATS),
     }
   : {
       getStats: () => api.get("/dashboard/stats"),
@@ -104,6 +108,9 @@ export const dashboardApi = USE_MOCK
       getMitreHeatmap: () => api.get("/dashboard/mitre/heatmap"),
       getTopIocs: (limit = 10) => api.get("/dashboard/top-iocs", { params: { limit } }),
       getRecentActivity: (limit = 10) => api.get("/dashboard/recent-activity", { params: { limit } }),
+      getTopAssets: (limit = 5) => api.get("/dashboard/top-assets", { params: { limit } }),
+      getTopUsers: (limit = 5) => api.get("/dashboard/top-users", { params: { limit } }),
+      getExtendedStats: () => api.get("/dashboard/extended-stats"),
     };
 
 // ── Alerts ────────────────────────────────────────────────────────────────────

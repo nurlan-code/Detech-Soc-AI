@@ -189,6 +189,48 @@ export const MOCK_AUDIT_LOGS = Array.from({ length: 50 }, (_, i) => {
   };
 });
 
+export const MOCK_TOP_MITRE = [
+  { technique_id: "T1566", name: "Phishing", count: 8, tactic: "Initial Access", severity: "high" },
+  { technique_id: "T1486", name: "Data Encrypted for Impact", count: 5, tactic: "Impact", severity: "critical" },
+  { technique_id: "T1003", name: "OS Credential Dumping", count: 4, tactic: "Credential Access", severity: "critical" },
+  { technique_id: "T1021", name: "Remote Services", count: 4, tactic: "Lateral Movement", severity: "high" },
+  { technique_id: "T1190", name: "Exploit Public-Facing App", count: 3, tactic: "Initial Access", severity: "high" },
+  { technique_id: "T1059", name: "Scripting Interpreter", count: 3, tactic: "Execution", severity: "high" },
+  { technique_id: "T1078", name: "Valid Accounts", count: 3, tactic: "Initial Access", severity: "medium" },
+  { technique_id: "T1110", name: "Brute Force", count: 2, tactic: "Credential Access", severity: "medium" },
+  { technique_id: "T1567", name: "Exfiltration Over Web", count: 2, tactic: "Exfiltration", severity: "high" },
+  { technique_id: "T1496", name: "Resource Hijacking", count: 1, tactic: "Impact", severity: "medium" },
+];
+
+export const MOCK_TOP_ASSETS = [
+  { name: "DC-01", type: "Domain Controller", alert_count: 12, risk_score: 94, ip: "10.0.1.10" },
+  { name: "FILESERVER01", type: "File Server", alert_count: 8, risk_score: 89, ip: "10.0.1.20" },
+  { name: "PORTAL-WEB-01", type: "Web Server", alert_count: 6, risk_score: 76, ip: "10.0.2.10" },
+  { name: "DEV-SERVER-01", type: "Dev Server", alert_count: 5, risk_score: 71, ip: "10.0.3.15" },
+  { name: "HR-SYSTEM-01", type: "App Server", alert_count: 4, risk_score: 68, ip: "10.0.4.5" },
+];
+
+export const MOCK_TOP_USERS = [
+  { username: "jsmith", display_name: "John Smith", department: "Finance", alert_count: 8, risk_score: 88, last_alert: ago(hrs(2)) },
+  { username: "aadmin", display_name: "Alice Admin", department: "IT", alert_count: 6, risk_score: 79, last_alert: ago(hrs(5)) },
+  { username: "mbrown", display_name: "Mike Brown", department: "Engineering", alert_count: 5, risk_score: 72, last_alert: ago(days(1)) },
+  { username: "kjones", display_name: "Karen Jones", department: "HR", alert_count: 4, risk_score: 65, last_alert: ago(days(2)) },
+  { username: "dwilson", display_name: "David Wilson", department: "Sales", alert_count: 3, risk_score: 54, last_alert: ago(days(3)) },
+];
+
+export const MOCK_EXTENDED_STATS = {
+  ai_analyzed_count: 2341,
+  ai_analyzed_pct: 82,
+  false_positive_rate: 7.3,
+  avg_response_time_min: 14.2,
+  analyst_time_saved_hrs: 127,
+  ai_automation_rate: 68,
+  mttd_hours: 2.8,
+  mttr_hours: 6.4,
+  total_iocs_blocked: 1847,
+  playbooks_executed: 43,
+};
+
 export function generateMockAIResponse(userMessage: string): string {
   const msg = userMessage.toLowerCase();
   if (msg.includes("ransomware")) return `## Ransomware Response Analysis\n\n**Threat Assessment:** High Severity — Immediate Action Required\n\n### Immediate Containment Steps\n1. **Isolate affected systems** from the network immediately (pull ethernet, disable WiFi)\n2. **Do NOT reboot** affected machines — preserve encrypted file headers for recovery\n3. **Preserve volatile memory** with a memory dump if possible\n4. **Identify patient zero** — trace the infection vector via EDR telemetry\n\n### Identification\n- Check file extension changes (e.g., \`.locked\`, \`.encrypted\`, \`.CRYPTED\`)\n- Look for ransom note files (README.txt, HOW_TO_DECRYPT.html)\n- Check for known ransomware families via hash lookup on VirusTotal\n\n### Recovery Strategy\n- **Do NOT pay the ransom** unless all other options are exhausted\n- Restore from last known clean backup\n- If no backup: check for Volume Shadow Copies (\`vssadmin list shadows\`)\n\n### MITRE ATT&CK\n- T1486: Data Encrypted for Impact\n- T1490: Inhibit System Recovery\n\n> **Always engage your IR team and legal counsel before any public communications.**`;

@@ -5,12 +5,13 @@ export interface User {
   username: string;
   role: UserRole;
   is_active: boolean;
-  is_mfa_enabled: boolean;
-  last_login: string | null;
+  is_mfa_enabled?: boolean;
+  last_login?: string | null;
   created_at: string;
+  tenant_id?: string;
 }
 
-export type UserRole = "super_admin" | "tenant_admin" | "soc_manager" | "soc_analyst" | "read_only";
+export type UserRole = "super_admin" | "tenant_admin" | "soc_manager" | "soc_analyst" | "read_only" | "mssp_admin";
 
 export interface LoginResponse {
   tokens?: TokenResponse;

@@ -1,17 +1,14 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Shield, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { authApi } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/authStore";
-import { setTokens } from "@/lib/auth";
 
 function MFAForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const mfaToken = searchParams.get("token") ?? "";
   const { setUser } = useAuthStore();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,10 +17,32 @@ function MFAForm() {
     if (code.length !== 6) return;
     setLoading(true);
     try {
-      const res = await authApi.verifyMfa(mfaToken, code);
-      setTokens(res.data.access_token, res.data.refresh_token);
-      const meRes = await authApi.me();
-      setUser(meRes.data);
+      // Supabase MFA challenge/verify flow
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: "totp" });
+      if (challengeError) throw challengeError;
+      const { data, error } = await supabase.auth.mfa.verify({
+        factorId: "totp",
+        challengeId: challengeData.id,
+        code,
+      });
+      if (error) throw error;
+      // After successful MFA, get the session to populate user
+      const { data: sessionData } = await supabase.auth.getSession();
+      const supaUser = sessionData.session?.user;
+      if (supaUser) {
+        const meta = supaUser.user_metadata ?? {};
+        setUser({
+          id: supaUser.id,
+          email: supaUser.email ?? "",
+          username: meta.username ?? meta.full_name ?? supaUser.email ?? "",
+          role: meta.role ?? "soc_analyst",
+          is_active: true,
+          is_mfa_enabled: true,
+          created_at: supaUser.created_at,
+          tenant_id: meta.tenant_id,
+        });
+      }
+      void data;
       router.push("/dashboard");
     } catch {
       toast.error("Invalid MFA code. Please try again.");

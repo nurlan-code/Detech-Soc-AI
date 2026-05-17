@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { CommandPalette } from "@/components/shared/CommandPalette";
-import { isAuthenticated } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/authStore";
 import { MOCK_ALERTS } from "@/lib/mockData";
 import toast from "react-hot-toast";
 
@@ -12,25 +13,49 @@ const LIVE_THREATS = MOCK_ALERTS.filter((a) => ["critical", "high"].includes(a.s
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { setUser, user } = useAuthStore();
   const [ready, setReady] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/login");
-    } else {
-      setReady(true);
-    }
-  }, [router]);
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        router.replace("/login");
+      } else {
+        // Sync Supabase user into Zustand store if not already there
+        if (!user) {
+          const su = data.session.user;
+          const meta = su.user_metadata ?? {};
+          setUser({
+            id: su.id,
+            username: meta.username ?? meta.full_name ?? su.email?.split("@")[0] ?? "User",
+            email: su.email ?? "",
+            role: (meta.role ?? "soc_analyst") as "soc_analyst" | "soc_manager" | "tenant_admin" | "mssp_admin" | "super_admin",
+            tenant_id: meta.tenant_id ?? "t1",
+            is_active: true,
+            created_at: su.created_at ?? new Date().toISOString(),
+          });
+        }
+        setReady(true);
+      }
+    });
+
+    // Listen for auth changes (logout from another tab, token expiry)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router, setUser, user]);
 
   // Global keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Ctrl+K / Cmd+K → Command Palette
     if ((e.ctrlKey || e.metaKey) && e.key === "k") {
       e.preventDefault();
       setCmdOpen((v) => !v);
     }
-    // ? → show shortcuts hint (only when not focused on an input)
     if (e.key === "?" && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
       toast(
         (t) => (
@@ -51,29 +76,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Live threat feed — random alert toast every ~90s
+  // Live threat feed
   useEffect(() => {
     if (!ready) return;
     const showThreat = () => {
       const alert = LIVE_THREATS[Math.floor(Math.random() * LIVE_THREATS.length)];
       const emoji = alert.severity === "critical" ? "🚨" : "⚠️";
-      toast(
-        `${emoji} ${alert.title}`,
-        {
-          duration: 5000,
-          style: {
-            background: alert.severity === "critical" ? "#1a0000" : "#1a0d00",
-            border: `1px solid ${alert.severity === "critical" ? "#ef444440" : "#f9731640"}`,
-            color: "#d1d5db",
-            fontSize: "12px",
-          },
-        }
-      );
+      toast(`${emoji} ${alert.title}`, {
+        duration: 5000,
+        style: {
+          background: alert.severity === "critical" ? "#1a0000" : "#1a0d00",
+          border: `1px solid ${alert.severity === "critical" ? "#ef444440" : "#f9731640"}`,
+          color: "#d1d5db",
+          fontSize: "12px",
+        },
+      });
     };
-
-    // First one after 45s, then every 90s
     const firstTimer = setTimeout(showThreat, 45_000);
-    const interval   = setInterval(showThreat, 90_000);
+    const interval = setInterval(showThreat, 90_000);
     return () => { clearTimeout(firstTimer); clearInterval(interval); };
   }, [ready]);
 

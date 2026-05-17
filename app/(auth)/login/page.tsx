@@ -13,23 +13,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
-import { setTokens } from "@/lib/auth";
-import { MOCK_USER } from "@/lib/mockData";
-
-const MOCK_USERS_KEY = "soc-mock-users";
-type StoredUser = { username: string; email: string; role: string };
-
-function resolveMockUser(email: string) {
-  try {
-    const stored = localStorage.getItem(MOCK_USERS_KEY);
-    const users: StoredUser[] = stored ? JSON.parse(stored) : [];
-    const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (found) {
-      return { ...MOCK_USER, username: found.username, email: found.email, role: found.role as typeof MOCK_USER.role };
-    }
-  } catch {}
-  return { ...MOCK_USER, username: email.split("@")[0], email };
-}
+import { supabase } from "@/lib/supabase";
 
 const loginSchema = z.object({
   email:    z.string().email("Invalid email address"),
@@ -71,21 +55,35 @@ export default function LoginPage() {
   });
 
   const fillDemo = () => {
-    setValue("email",    "admin@gmail.com");
-    setValue("password", "admin123");
+    setValue("email",    "admin@detech.io");
+    setValue("password", "Admin1234!");
   };
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1000));
-      const user = resolveMockUser(data.email);
-      setTokens("mock-access-token", "mock-refresh-token");
-      setUser(user);
-      toast.success(`Welcome back, ${user.username}!`, { icon: "🛡️" });
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) throw error;
+
+      const supaUser = authData.user;
+      const meta = supaUser?.user_metadata ?? {};
+      setUser({
+        id: supaUser?.id ?? "",
+        username: meta.username ?? meta.full_name ?? data.email.split("@")[0],
+        email: supaUser?.email ?? data.email,
+        role: (meta.role ?? "soc_analyst") as "soc_analyst" | "soc_manager" | "tenant_admin" | "mssp_admin" | "super_admin",
+        tenant_id: meta.tenant_id ?? "t1",
+        is_active: true,
+        created_at: supaUser?.created_at ?? new Date().toISOString(),
+      });
+      toast.success(`Welcome back, ${meta.username ?? data.email.split("@")[0]}!`, { icon: "🛡️" });
       router.push("/dashboard");
-    } catch {
-      toast.error("Login failed. Please try again.");
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "Invalid credentials";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -96,8 +94,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 800));
-      setTokens("mock-access-token", "mock-refresh-token");
-      setUser({ ...MOCK_USER });
       toast.success("MFA verified. Welcome back!", { icon: "🔐" });
       router.push("/dashboard");
     } catch {
@@ -336,7 +332,7 @@ export default function LoginPage() {
                 <motion.div className="mt-5 pt-5 border-t border-soc-border space-y-3" {...fadeUp(0.25)}>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Shield className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>Demo mode — any email &amp; password combination will work</span>
+                    <span>Qeydiyyatdan keçmiş hesabınızla daxil olun</span>
                   </div>
                   <Link
                     href="/register"

@@ -9,6 +9,7 @@ import { useCreditsStore } from "@/store/creditsStore";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard, Bell, Flame, Mail, MessageSquare,
   FileText, BookOpen, Plug, ClipboardList, Building2,
@@ -250,7 +251,11 @@ function SidebarContent({
           </div>
         )}
         <button
-          onClick={() => { logout(); router.push("/login"); }}
+          onClick={async () => {
+            logout();
+            await supabase.auth.signOut();
+            router.push("/login");
+          }}
           title={collapsed ? "Logout" : undefined}
           className={cn(
             "flex items-center gap-3 w-full px-2.5 py-2.5 rounded-xl text-sm",

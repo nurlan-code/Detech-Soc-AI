@@ -12,18 +12,7 @@ import {
   CheckCircle, Zap, AlertTriangle, Building2, ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
-const MOCK_USERS_KEY = "soc-mock-users";
-
-function saveMockUser(user: { username: string; email: string; role: string }) {
-  try {
-    const stored = localStorage.getItem(MOCK_USERS_KEY);
-    const users: typeof user[] = stored ? JSON.parse(stored) : [];
-    const idx = users.findIndex((u) => u.email === user.email);
-    if (idx >= 0) users[idx] = user; else users.push(user);
-    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
-  } catch {}
-}
+import { supabase } from "@/lib/supabase";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Min 3 characters").max(30, "Max 30 characters"),
@@ -80,13 +69,24 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1400));
-      saveMockUser({ username: data.username, email: data.email, role: data.role });
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            username: data.username,
+            full_name: data.username,
+            role: data.role,
+          },
+        },
+      });
+      if (error) throw error;
       setSuccess(true);
       toast.success(`Account created for ${data.username}! Please sign in.`, { duration: 3500, icon: "✅" });
       setTimeout(() => router.push("/login"), 2000);
-    } catch {
-      toast.error("Registration failed. Please try again.");
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "Registration failed";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

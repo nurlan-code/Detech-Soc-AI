@@ -1,34 +1,11 @@
-import Cookies from "js-cookie";
-import { authApi } from "./api";
+import { supabase } from "./supabase";
 
-const COOKIE_OPTIONS = {
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-};
-
-export function setTokens(accessToken: string, refreshToken: string) {
-  Cookies.set("access_token", accessToken, { ...COOKIE_OPTIONS, expires: 1 / 48 }); // 30 min
-  Cookies.set("refresh_token", refreshToken, { ...COOKIE_OPTIONS, expires: 7 });
-}
-
-export function clearTokens() {
-  Cookies.remove("access_token");
-  Cookies.remove("refresh_token");
-}
-
-export function getAccessToken(): string | undefined {
-  return Cookies.get("access_token");
-}
-
-export function isAuthenticated(): boolean {
-  return !!getAccessToken();
+export async function isAuthenticated(): Promise<boolean> {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
 }
 
 export async function logout() {
-  try {
-    await authApi.logout();
-  } finally {
-    clearTokens();
-    window.location.href = "/login";
-  }
+  await supabase.auth.signOut();
+  window.location.href = "/login";
 }

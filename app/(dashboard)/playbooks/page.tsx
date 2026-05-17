@@ -170,7 +170,7 @@ function ExecuteModal({ playbook, onClose }: { playbook: Playbook; onClose: () =
           {!running && <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-300 rounded-lg transition-colors"><X className="w-4 h-4" /></button>}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5">
           <div className="space-y-2">
             {playbook.steps.map((s, i) => {
               const status = i < step ? "done" : i === step && running ? "running" : "pending";
@@ -311,7 +311,7 @@ function NewPlaybookModal({ open, onClose, onCreate }: { open: boolean; onClose:
               <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-300 rounded-lg transition-colors"><X className="w-4 h-4" /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-5">
               {/* Basic info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -440,7 +440,7 @@ export default function PlaybooksPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Playbooks" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-5">
 
         {/* Stats */}
         <motion.div

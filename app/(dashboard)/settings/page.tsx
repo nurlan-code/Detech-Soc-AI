@@ -289,7 +289,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Settings" />
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5">
 
         {/* Security Score Banner — spans full width */}
         <SecurityScoreBanner

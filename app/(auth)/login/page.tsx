@@ -12,9 +12,24 @@ import {
   AlertTriangle, Cpu, CheckCircle, ArrowRight, Zap, UserPlus,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { setTokens } from "@/lib/auth";
+import { MOCK_USER } from "@/lib/mockData";
+
+const MOCK_USERS_KEY = "soc-mock-users";
+type StoredUser = { username: string; email: string; role: string };
+
+function resolveMockUser(email: string) {
+  try {
+    const stored = localStorage.getItem(MOCK_USERS_KEY);
+    const users: StoredUser[] = stored ? JSON.parse(stored) : [];
+    const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (found) {
+      return { ...MOCK_USER, username: found.username, email: found.email, role: found.role as typeof MOCK_USER.role };
+    }
+  } catch {}
+  return { ...MOCK_USER, username: email.split("@")[0], email };
+}
 
 const loginSchema = z.object({
   email:    z.string().email("Invalid email address"),
@@ -63,24 +78,14 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      const res = await authApi.login(data.email, data.password);
-      const { tokens, requires_mfa, mfa_token } = res.data as {
-        tokens: { access_token: string; refresh_token: string };
-        requires_mfa: boolean;
-        mfa_token: string;
-      };
-      if (requires_mfa) {
-        setMfa({ required: true, token: mfa_token, code: "" });
-        return;
-      }
-      setTokens(tokens.access_token, tokens.refresh_token);
-      const me = await authApi.me();
-      setUser(me.data);
-      toast.success("Welcome back!");
+      await new Promise((r) => setTimeout(r, 1000));
+      const user = resolveMockUser(data.email);
+      setTokens("mock-access-token", "mock-refresh-token");
+      setUser(user);
+      toast.success(`Welcome back, ${user.username}!`, { icon: "🛡️" });
       router.push("/dashboard");
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Invalid credentials";
-      toast.error(msg);
+    } catch {
+      toast.error("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,12 +95,10 @@ export default function LoginPage() {
     if (mfa.code.length !== 6) return;
     setLoading(true);
     try {
-      const res = await authApi.verifyMfa(mfa.token, mfa.code);
-      const d = res.data as { access_token: string; refresh_token: string };
-      setTokens(d.access_token, d.refresh_token);
-      const me = await authApi.me();
-      setUser(me.data);
-      toast.success("Welcome back!");
+      await new Promise((r) => setTimeout(r, 800));
+      setTokens("mock-access-token", "mock-refresh-token");
+      setUser({ ...MOCK_USER });
+      toast.success("MFA verified. Welcome back!", { icon: "🔐" });
       router.push("/dashboard");
     } catch {
       toast.error("Invalid MFA code");
@@ -261,7 +264,7 @@ export default function LoginPage() {
                     <Zap className="w-4 h-4 text-blue-400" />
                   </div>
                   <div className="text-left flex-1">
-                    <p className="text-xs font-semibold text-blue-400">Demo Account</p>
+                    <p className="text-xs font-semibold text-blue-400">Quick Demo Login</p>
                     <p className="text-[11px] text-gray-600 font-mono">admin@gmail.com · admin123</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-blue-500/50 group-hover:text-blue-400 transition-colors" />
@@ -331,9 +334,9 @@ export default function LoginPage() {
                 </form>
 
                 <motion.div className="mt-5 pt-5 border-t border-soc-border space-y-3" {...fadeUp(0.25)}>
-                  <div className="flex items-center gap-2 text-xs text-gray-700">
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>Protected by enterprise-grade TLS encryption</span>
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>Demo mode — any email &amp; password combination will work</span>
                   </div>
                   <Link
                     href="/register"

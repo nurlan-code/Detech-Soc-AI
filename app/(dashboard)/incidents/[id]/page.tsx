@@ -73,7 +73,7 @@ export default function IncidentDetailPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header />
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5">
         <div className="max-w-6xl mx-auto space-y-5">
 
           {/* Breadcrumb */}

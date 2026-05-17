@@ -358,7 +358,7 @@ export default function MSSPPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="MSSP Management" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-5">
 
         {/* Stats */}
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>

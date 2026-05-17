@@ -40,7 +40,7 @@ api.interceptors.response.use(
       }
       Cookies.remove("access_token");
       Cookies.remove("refresh_token");
-      window.location.href = "/login";
+      if (typeof window !== "undefined") window.location.href = "/login";
     }
     return Promise.reject(error);
   }
@@ -89,7 +89,17 @@ export const authApi = USE_MOCK
     };
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
-export const dashboardApi = USE_MOCK
+export const dashboardApi: {
+  getStats: () => Promise<{ data: any }>;
+  getAlertTrend: (days?: number) => Promise<{ data: any }>;
+  getSeverityDistribution: () => Promise<{ data: any }>;
+  getMitreHeatmap: () => Promise<{ data: any }>;
+  getTopIocs: (limit?: number) => Promise<{ data: any }>;
+  getRecentActivity: (limit?: number) => Promise<{ data: any }>;
+  getTopAssets: (limit?: number) => Promise<{ data: any }>;
+  getTopUsers: (limit?: number) => Promise<{ data: any }>;
+  getExtendedStats: () => Promise<{ data: any }>;
+} = USE_MOCK
   ? {
       getStats: () => mockOk(MOCK_STATS),
       getAlertTrend: (_days = 30) => mockOk(MOCK_TREND),
@@ -121,6 +131,7 @@ export const alertsApi = USE_MOCK
         if (params?.search) items = items.filter((a) => a.title.toLowerCase().includes(String(params.search).toLowerCase()) || a.source.includes(String(params.search).toLowerCase()));
         if (params?.severity) items = items.filter((a) => a.severity === params.severity);
         if (params?.status) items = items.filter((a) => a.status === params.status);
+        if (params?.source) items = items.filter((a) => a.source === params.source);
         return mockOk(paginate(items, Number(params?.page ?? 1), Number(params?.page_size ?? 25)));
       },
       get: (id: string) => mockOk(MOCK_ALERTS.find((a) => a.id === id) ?? MOCK_ALERTS[0]),

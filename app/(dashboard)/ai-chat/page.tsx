@@ -89,7 +89,7 @@ export default function AIChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -206,17 +206,17 @@ export default function AIChatPage() {
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="AI Security Assistant" />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* ── History Sidebar ─────────────────────────────────────────────── */}
         <AnimatePresence initial={false}>
           {historyOpen && (
             <motion.aside
               key="history"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 240, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
+              initial={{ x: -240, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -240, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="flex-shrink-0 border-r border-soc-border bg-soc-surface overflow-hidden"
+              className="absolute sm:relative inset-y-0 left-0 z-30 w-60 flex-shrink-0 border-r border-soc-border bg-soc-surface overflow-hidden shadow-2xl sm:shadow-none"
             >
               <div className="w-60 h-full flex flex-col">
                 {/* Header */}
@@ -285,6 +285,17 @@ export default function AIChatPage() {
           )}
         </AnimatePresence>
 
+        {/* Mobile overlay backdrop */}
+        <AnimatePresence>
+          {historyOpen && (
+            <motion.div
+              className="sm:hidden absolute inset-0 bg-black/50 z-20"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setHistoryOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+
         {/* ── Toggle Button ───────────────────────────────────────────────── */}
         <div className="relative flex-shrink-0 flex items-start pt-3">
           <motion.button
@@ -312,7 +323,7 @@ export default function AIChatPage() {
           )}
 
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-5">
             <AnimatePresence>
               {messages.length === 0 && (
                 <motion.div

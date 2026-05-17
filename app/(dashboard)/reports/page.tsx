@@ -238,7 +238,7 @@ export default function ReportsPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Reports" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
 
         {/* Toolbar */}
         <motion.div

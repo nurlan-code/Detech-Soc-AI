@@ -226,7 +226,7 @@ export default function PhishingPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Phishing Analysis" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
 
         {/* Stats */}
         <motion.div

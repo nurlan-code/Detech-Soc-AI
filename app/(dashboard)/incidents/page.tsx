@@ -10,7 +10,7 @@ import { Header } from "@/components/shared/Header";
 import { cn, statusBadgeClass, formatRelativeTime, truncate } from "@/lib/utils";
 import {
   Plus, RefreshCw, Flame, Shield, Clock,
-  AlertTriangle, ChevronRight, Activity, X, Tags,
+  AlertTriangle, ChevronRight, Activity, X, Filter,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -96,17 +96,21 @@ function NewIncidentModal({ open, onClose, onCreate }: {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
           <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
           <motion.div
-            className="relative w-full max-w-lg bg-soc-surface border border-soc-border rounded-2xl shadow-2xl z-10 max-h-[90vh] flex flex-col"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative w-full sm:max-w-lg bg-soc-surface border border-soc-border sm:rounded-2xl rounded-t-2xl shadow-2xl z-10 max-h-[92dvh] flex flex-col"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* Handle bar for mobile */}
+            <div className="flex justify-center pt-3 sm:hidden">
+              <div className="w-10 h-1 bg-soc-border rounded-full" />
+            </div>
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-soc-border flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -231,11 +235,15 @@ function NewIncidentModal({ open, onClose, onCreate }: {
   );
 }
 
+const INCIDENT_STATUSES = ["open", "investigating", "contained", "eradicated", "resolved", "closed"];
+
 export default function IncidentsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [sevFilter, setSevFilter]   = useState<IncidentSeverity | "">("");
+  const [statusFilter, setStatus]   = useState("");
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["incidents", page],
@@ -243,21 +251,26 @@ export default function IncidentsPage() {
     refetchInterval: 30_000,
   });
 
-  const incidents: IncidentWithCount[] = data?.items ?? [];
+  const allIncidents: IncidentWithCount[] = data?.items ?? [];
+  const incidents = allIncidents.filter((i) => {
+    if (sevFilter && i.severity !== sevFilter) return false;
+    if (statusFilter && i.status !== statusFilter) return false;
+    return true;
+  });
   const total     = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 1;
 
   const summaryStats = {
-    open:          incidents.filter((i) => i.status === "open").length,
-    critical:      incidents.filter((i) => i.severity === "critical").length,
-    slaBreached:   incidents.filter((i) => i.sla_breach).length,
-    investigating: incidents.filter((i) => i.status === "investigating").length,
+    open:          allIncidents.filter((i) => i.status === "open").length,
+    critical:      allIncidents.filter((i) => i.severity === "critical").length,
+    slaBreached:   allIncidents.filter((i) => i.sla_breach).length,
+    investigating: allIncidents.filter((i) => i.status === "investigating").length,
   };
 
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Incidents" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
 
         {/* Summary bar */}
         <motion.div
@@ -277,16 +290,68 @@ export default function IncidentsPage() {
           ))}
         </motion.div>
 
-        {/* Toolbar */}
+        {/* Filters + Toolbar */}
         <motion.div
-          className="flex items-center justify-between"
+          className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
         >
-          <div className="flex items-center gap-2">
-            <Flame className="w-4 h-4 text-orange-400" />
-            <span className="text-sm text-gray-400">{total} total incidents</span>
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Severity chips */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] text-gray-600">Sev:</span>
+              {(["", ...SEVERITIES] as (IncidentSeverity | "")[]).map((s) => {
+                const active = sevFilter === s;
+                const label = s === "" ? "All" : s.charAt(0).toUpperCase() + s.slice(1);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSevFilter(s)}
+                    className={cn(
+                      "text-[10px] font-semibold uppercase px-2.5 py-1 rounded-full border transition-all",
+                      active
+                        ? s === "" ? "text-gray-200 border-gray-500 bg-white/10"
+                          : s === "critical" ? "text-red-300 border-red-500/40 bg-red-500/10"
+                          : s === "high"     ? "text-orange-300 border-orange-500/40 bg-orange-500/10"
+                          : s === "medium"   ? "text-yellow-300 border-yellow-500/40 bg-yellow-500/10"
+                          : "text-green-300 border-green-500/40 bg-green-500/10"
+                        : "text-gray-600 border-soc-border bg-soc-dark hover:text-gray-400 hover:border-gray-600"
+                    )}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Status select */}
+            <div className="relative flex items-center">
+              <Filter className="absolute left-2.5 w-3 h-3 text-gray-600" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatus(e.target.value)}
+                className="pl-7 pr-3 py-1.5 bg-soc-card border border-soc-border rounded-lg text-xs text-gray-400 focus:outline-none appearance-none cursor-pointer hover:border-gray-600 transition-colors"
+              >
+                <option value="">All Statuses</option>
+                {INCIDENT_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+
+            {(sevFilter || statusFilter) && (
+              <button
+                onClick={() => { setSevFilter(""); setStatus(""); }}
+                className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                <X className="w-3 h-3" /> Clear
+              </button>
+            )}
           </div>
+
+          {/* Right actions */}
           <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 tabular-nums">{incidents.length} of {total}</span>
             <button
               onClick={() => { refetch(); toast.success("Incidents refreshed", { duration: 1500 }); }}
               className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-200 bg-soc-card border border-soc-border rounded-lg hover:border-gray-600 transition-all"

@@ -118,15 +118,15 @@ export default function DashboardPage() {
   });
   const { data: topAssets = [] } = useQuery<TopAsset[]>({
     queryKey: ["top-assets"],
-    queryFn: () => (dashboardApi as typeof dashboardApi & { getTopAssets: () => Promise<{ data: TopAsset[] }> }).getTopAssets().then((r) => r.data),
+    queryFn: () => dashboardApi.getTopAssets().then((r) => r.data),
   });
   const { data: topUsers = [] } = useQuery<TopUser[]>({
     queryKey: ["top-users"],
-    queryFn: () => (dashboardApi as typeof dashboardApi & { getTopUsers: () => Promise<{ data: TopUser[] }> }).getTopUsers().then((r) => r.data),
+    queryFn: () => dashboardApi.getTopUsers().then((r) => r.data),
   });
   const { data: extStats } = useQuery<ExtStats>({
     queryKey: ["extended-stats"],
-    queryFn: () => (dashboardApi as typeof dashboardApi & { getExtendedStats: () => Promise<{ data: ExtStats }> }).getExtendedStats().then((r) => r.data),
+    queryFn: () => dashboardApi.getExtendedStats().then((r) => r.data),
   });
 
   const pieData = Object.entries(severityDist).map(([name, value]) => ({ name, value }));
@@ -145,11 +145,11 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Security Dashboard" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-5">
 
         {/* ── Primary KPI cards ── */}
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3"
           variants={stagger.container}
           initial="initial"
           animate="animate"
@@ -168,7 +168,7 @@ export default function DashboardPage() {
               key={label}
               variants={stagger.item}
               whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
-              className={cn("soc-card p-4 cursor-default border-l-2 transition-shadow", bl)}
+              className={cn("soc-card p-3 sm:p-4 cursor-default border-l-2 transition-shadow", bl)}
             >
               <div className="flex items-start justify-between mb-3">
                 <p className="text-xs text-gray-500">{label}</p>
@@ -213,7 +213,7 @@ export default function DashboardPage() {
               AI Active
             </motion.span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
             {[
               { label: "AI Analyzed",     value: extStats?.ai_analyzed_pct ?? 0,     suffix: "%",  icon: Zap,        color: "text-violet-400", desc: `${(extStats?.ai_analyzed_count ?? 0).toLocaleString()} alerts` },
               { label: "Auto Rate",       value: extStats?.ai_automation_rate ?? 0,   suffix: "%",  icon: Brain,      color: "text-blue-400",   desc: "Automated handling" },
@@ -245,7 +245,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
           >
             <SectionHeader title="Alert Volume" subtitle="Last 30 days" badge="Live" />
-            <ResponsiveContainer width="100%" height={190}>
+            <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={trend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">

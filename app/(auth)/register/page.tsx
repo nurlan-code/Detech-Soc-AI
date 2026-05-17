@@ -12,9 +12,18 @@ import {
   CheckCircle, Zap, AlertTriangle, Building2, ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useAuthStore } from "@/store/authStore";
-import { setTokens } from "@/lib/auth";
-import { MOCK_USER } from "@/lib/mockData";
+
+const MOCK_USERS_KEY = "soc-mock-users";
+
+function saveMockUser(user: { username: string; email: string; role: string }) {
+  try {
+    const stored = localStorage.getItem(MOCK_USERS_KEY);
+    const users: typeof user[] = stored ? JSON.parse(stored) : [];
+    const idx = users.findIndex((u) => u.email === user.email);
+    if (idx >= 0) users[idx] = user; else users.push(user);
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+  } catch {}
+}
 
 const registerSchema = z.object({
   username: z.string().min(3, "Min 3 characters").max(30, "Max 30 characters"),
@@ -58,7 +67,6 @@ const STATS = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
   const [showPwd, setShowPwd] = useState(false);
   const [showConfPwd, setShowConfPwd] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,16 +81,10 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 1400));
-      setTokens("mock-access-token", "mock-refresh-token");
-      setUser({
-        ...MOCK_USER,
-        username: data.username,
-        email: data.email,
-        role: data.role as typeof MOCK_USER.role,
-      });
+      saveMockUser({ username: data.username, email: data.email, role: data.role });
       setSuccess(true);
-      toast.success(`Welcome to Detech SOC, ${data.username}! Redirecting...`, { duration: 3000 });
-      setTimeout(() => router.push("/dashboard"), 1600);
+      toast.success(`Account created for ${data.username}! Please sign in.`, { duration: 3500, icon: "✅" });
+      setTimeout(() => router.push("/login"), 2000);
     } catch {
       toast.error("Registration failed. Please try again.");
     } finally {
@@ -209,7 +211,7 @@ export default function RegisterPage() {
                   <CheckCircle className="w-10 h-10 text-green-400" />
                 </motion.div>
                 <h2 className="text-2xl font-black text-white mb-2">Account Created!</h2>
-                <p className="text-sm text-gray-500">Redirecting to your dashboard...</p>
+                <p className="text-sm text-gray-500">Redirecting to login page...</p>
                 <div className="mt-4 flex justify-center">
                   <motion.div
                     className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full"

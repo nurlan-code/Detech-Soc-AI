@@ -92,7 +92,7 @@ export default function AuditLogsPage() {
   return (
     <div className="flex flex-col h-full bg-soc-dark">
       <Header title="Audit Logs" />
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
 
         {/* Stats */}
         <motion.div

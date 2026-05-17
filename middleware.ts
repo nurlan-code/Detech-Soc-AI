@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
 const PROTECTED = [
   "/dashboard", "/alerts", "/incidents", "/phishing",
@@ -15,36 +15,43 @@ export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
 
-  // Read Supabase session from cookies
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false },
-    global: {
-      headers: {
-        cookie: req.headers.get("cookie") ?? "",
+  if (!isProtected && !isAuthRoute) return NextResponse.next();
+
+  const res = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
       },
-    },
-  });
+    }
+  );
 
   const { data: { session } } = await supabase.auth.getSession();
   const isLoggedIn = !!session;
 
-  // Not logged in → redirect to login
   if (isProtected && !isLoggedIn) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Already logged in → redirect away from auth pages
   if (isAuthRoute && isLoggedIn) {
     const url = req.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

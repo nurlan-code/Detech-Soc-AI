@@ -261,7 +261,7 @@ export default function LoginPage() {
                   </div>
                   <div className="text-left flex-1">
                     <p className="text-xs font-semibold text-blue-400">Quick Demo Login</p>
-                    <p className="text-[11px] text-gray-600 font-mono">admin@gmail.com · admin123</p>
+                    <p className="text-[11px] text-gray-600 font-mono">admin@detech.io · Admin1234!</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-blue-500/50 group-hover:text-blue-400 transition-colors" />
                 </motion.button>

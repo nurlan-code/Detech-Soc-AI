@@ -186,6 +186,14 @@ export const alertsApi = USE_MOCK
       create: async (data: unknown) => {
         const { data: created, error } = await supabase.from("alerts").insert([data as object]).select().single();
         if (error) throw error;
+        const a = created as { severity: string; title: string; description: string };
+        if (a.severity === "critical") {
+          fetch("/api/notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: a.title, severity: a.severity, description: a.description }),
+          }).catch(() => {});
+        }
         return { data: created };
       },
       update: async (id: string, data: unknown) => {
@@ -300,11 +308,31 @@ export const phishingApi = USE_MOCK
           risk_score: 0,
         }]).select().single();
         if (error) throw error;
+        // Trigger AI analysis in background
+        fetch("/api/phishing-analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            caseId: created.id,
+            subject: payload.subject,
+            sender: payload.sender,
+            content: payload.content,
+            urls: payload.urls,
+          }),
+        }).catch(() => {});
         return { data: created };
       },
-      uploadEml: async (_file: File) => {
+      uploadEml: async (file: File) => {
+        // Upload to Supabase Storage
+        const fileName = `${Date.now()}-${file.name}`;
+        const { error: storageErr } = await supabase.storage
+          .from("phishing-emails")
+          .upload(fileName, file, { contentType: "message/rfc822" });
+        if (storageErr && storageErr.message !== "The resource already exists") {
+          console.warn("Storage upload:", storageErr.message);
+        }
         const { data: created, error } = await supabase.from("phishing_cases").insert([{
-          subject: _file.name,
+          subject: file.name,
           sender: "uploaded",
           verdict: "unknown",
           status: "analyzing",
@@ -312,6 +340,12 @@ export const phishingApi = USE_MOCK
           risk_score: 0,
         }]).select().single();
         if (error) throw error;
+        // Trigger AI analysis
+        fetch("/api/phishing-analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ caseId: created.id, subject: file.name, content: `Uploaded EML file: ${file.name}` }),
+        }).catch(() => {});
         return { data: created };
       },
     };

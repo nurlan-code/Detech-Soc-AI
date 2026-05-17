@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/authStore";
 import { MOCK_ALERTS } from "@/lib/mockData";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const LIVE_THREATS = MOCK_ALERTS.filter((a) => ["critical", "high"].includes(a.severity)).slice(0, 8);
 
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { setUser, user } = useAuthStore();
   const [ready, setReady] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -75,6 +77,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  // Supabase Realtime — live DB updates
+  useEffect(() => {
+    if (!ready) return;
+    const channel = supabase
+      .channel("db-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, (payload) => {
+        queryClient.invalidateQueries({ queryKey: ["alerts"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+        if (payload.eventType === "INSERT") {
+          const a = payload.new as { title: string; severity: string };
+          const emoji = a.severity === "critical" ? "🚨" : a.severity === "high" ? "⚠️" : "🔔";
+          toast(`${emoji} New alert: ${a.title}`, {
+            duration: 6000,
+            style: {
+              background: a.severity === "critical" ? "#1a0000" : "#0d1117",
+              border: `1px solid ${a.severity === "critical" ? "#ef444440" : "#1f2937"}`,
+              color: "#d1d5db",
+              fontSize: "12px",
+            },
+          });
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "incidents" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["incidents"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "phishing_cases" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["phishing"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [ready, queryClient]);
 
   // Live threat feed
   useEffect(() => {

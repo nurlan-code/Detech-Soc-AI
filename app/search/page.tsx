@@ -1,12 +1,12 @@
 "use client";
 
 // TODO: disable before prod — /api/v1/debug/users
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function SearchPage() {
+function SearchContent() {
   const params = useSearchParams();
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -56,5 +56,17 @@ export default function SearchPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-gray-950">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }

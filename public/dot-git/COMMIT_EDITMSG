@@ -1,0 +1,5 @@
+fix: removed hardcoded credentials from config-backup.ts
+
+- moved db connection string out of source
+- rotated legacy api key (see vault entry #CTF-2024-11)
+- admin seed account disabled in staging

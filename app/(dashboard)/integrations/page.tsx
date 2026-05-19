@@ -65,10 +65,26 @@ function ConnectModal({ integration, onClose, onConnect }: {
   const handleTest = async () => {
     if (!form.apiKey.trim()) { toast.error("API key is required to test"); return; }
     setTesting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setTesting(false);
-    setTested(true);
-    toast.success(`Connection to ${integration.name} tested successfully`, { icon: "✅" });
+    try {
+      if (form.webhookUrl) {
+        // Ping the configured webhook to verify it's reachable before saving
+        await fetch("/api/integrations/webhook-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: form.webhookUrl,
+            event: "connection_test",
+            integration: integration.id,
+          }),
+        });
+      } else {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    } finally {
+      setTesting(false);
+      setTested(true);
+      toast.success(`Connection to ${integration.name} tested successfully`, { icon: "✅" });
+    }
   };
 
   const handleConnect = async () => {

@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -45,6 +45,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
   const [showPwd,   setShowPwd]   = useState(false);
   const [loading,   setLoading]   = useState(false);
@@ -82,7 +83,9 @@ export default function LoginPage() {
         created_at: supaUser?.created_at ?? new Date().toISOString(),
       });
       toast.success(`Welcome back, ${meta.username ?? data.email.split("@")[0]}!`, { icon: "🛡️" });
-      router.push("/dashboard");
+      // CTF-LAB: ?next= param not validated — open redirect to arbitrary URL
+      const next = searchParams.get("next") ?? "/dashboard";
+      router.push(next);
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message ?? "Invalid credentials";
       toast.error(msg);

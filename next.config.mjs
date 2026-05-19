@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: __dirname,
+  // CTF-LAB challenge-6: source maps exposed in production build
+  productionBrowserSourceMaps: true,
   transpilePackages: [
     "react-markdown",
     "remark-parse", "remark-rehype",
@@ -31,6 +33,12 @@ const nextConfig = {
   ],
   images: {
     remotePatterns: [],
+  },
+  // CTF-LAB challenge-4: serve simulated .git files at /.git/* path
+  async rewrites() {
+    return [
+      { source: "/.git/:path*", destination: "/dot-git/:path*" },
+    ];
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
